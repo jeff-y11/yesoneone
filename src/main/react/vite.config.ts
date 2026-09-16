@@ -1,0 +1,21 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  server: {
+    port: 5173,
+    proxy: {
+      "/data": { target: "http://localhost:8080", changeOrigin: true },
+      "/services": { target: "http://localhost:8080", changeOrigin: true },
+      "/mcp": { target: "http://localhost:8080", changeOrigin: true },
+      "/oauth2": { target: "http://localhost:8080", changeOrigin: true },
+      "/login": { target: "http://localhost:8080", changeOrigin: true },
+      "/logout": { target: "http://localhost:8080", changeOrigin: true },
+    },
+  },
+  build: {
+    outDir: "dist",
+  },
+});
