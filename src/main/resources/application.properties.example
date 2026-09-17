@@ -1,0 +1,40 @@
+# Application Configuration Template
+# Copy this file to application.properties and set the environment variables or application-secrets.properties
+# DO NOT commit application.properties or application-secrets.properties to version control.
+
+# JWT
+geodevai.jwt.secret=${JWT_SECRET}
+geodevai.jwt.expiration-time=1440
+
+# App Settings
+geodevai.app.frontend-url=http://localhost:8080
+geodevai.app.cors.allowed-origins=http://localhost:5173
+
+# Spring Data REST
+spring.data.rest.base-path=/data
+
+# Jackson
+spring.jackson.default-property-inclusion=non_null
+spring.jackson.parser.allow-non-numeric-numbers=true
+spring.jackson.date-format=dd-MM-yyyy HH:mm
+spring.jackson.time-zone=UTC
+
+# Database (PostgreSQL)
+spring.datasource.url=jdbc:postgresql://localhost:5432/geodevai
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.datasource.username=${DB_USERNAME:geodevai_user}
+spring.datasource.password=${DB_PASSWORD}
+
+# JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.format_sql=false
+
+# Server
+server.port=8080
+
+# Google OAuth2
+spring.security.oauth2.client.registration.google.client-id=${GOOGLE_CLIENT_ID}
+spring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET}
+spring.security.oauth2.client.registration.google.scope=email,profile,https://www.googleapis.com/auth/calendar.readonly,https://www.googleapis.com/auth/chat.spaces.readonly,https://www.googleapis.com/auth/chat.messages.readonly

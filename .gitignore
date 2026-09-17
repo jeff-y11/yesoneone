@@ -2,5 +2,5 @@ build/
 .gradle/
 .idea/
 *log
-src/main/resources/application.properties
-src/main/resources/application-DEV.properties
+src/main/resources/application-secrets.properties
+src/main/resources/application-local.properties
