@@ -1,5 +1,7 @@
 package com.geodevai.controller;
 
+import com.geodevai.data.dto.SearchResponse;
+import com.geodevai.data.dto.UnitResponse;
 import com.geodevai.data.model.Organization;
 import com.geodevai.data.model.Property;
 import com.geodevai.data.model.Unit;
@@ -14,7 +16,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -27,7 +28,7 @@ public class UnitController {
     private final UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getUnits(
+    public ResponseEntity<SearchResponse<UnitResponse>> getUnits(
             @RequestParam(required = false, defaultValue = "") String search,
             @RequestParam(required = false) UUID propertyId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -48,11 +49,10 @@ public class UnitController {
                             .equals(org.getOrganizationId()))
                     .map(property -> {
                         List<Unit> propertyUnits = unitRepository.findByProperty(property);
-                        return ResponseEntity.ok((Map<String, Object>) Map.of(
-                                "items", propertyUnits,
-                                "count", propertyUnits.size(),
-                                "query", search
-                        ));
+                        List<UnitResponse> items = propertyUnits.stream()
+                                .map(this::toResponse)
+                                .toList();
+                        return ResponseEntity.ok(new SearchResponse<>(items, items.size(), search));
                     })
                     .orElse(ResponseEntity.status(403).build());
         }
@@ -63,15 +63,15 @@ public class UnitController {
             units = unitRepository.searchByOrganizationAndQuery(org, search);
         }
 
-        return ResponseEntity.ok(Map.of(
-                "items", units,
-                "count", units.size(),
-                "query", search
-        ));
+        List<UnitResponse> items = units.stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(new SearchResponse<>(items, items.size(), search));
     }
 
     @GetMapping("/{unitId}")
-    public ResponseEntity<Map<String, Object>> getUnit(@PathVariable UUID unitId) {
+    public ResponseEntity<UnitResponse> getUnit(@PathVariable UUID unitId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String userId = auth.getName();
         User user = userRepository.findById(UUID.fromString(userId))
@@ -84,20 +84,24 @@ public class UnitController {
         return unitRepository.findById(unitId)
                 .filter(unit -> unit.getProperty().getOrganization().getOrganizationId()
                         .equals(user.getOrganization().getOrganizationId()))
-                .map(unit -> ResponseEntity.ok((Map<String, Object>) Map.of(
-                        "unitId", unit.getUnitId(),
-                        "unitNumber", unit.getUnitNumber(),
-                        "externalUnitId", unit.getExternalUnitId(),
-                        "unitType", unit.getUnitType() != null ? unit.getUnitType() : "",
-                        "squareFootage", unit.getSquareFootage() != null ? unit.getSquareFootage() : 0,
-                        "bedrooms", unit.getBedrooms() != null ? unit.getBedrooms() : 0,
-                        "bathrooms", unit.getBathrooms() != null ? unit.getBathrooms() : 0,
-                        "rentAmount", unit.getRentAmount() != null ? unit.getRentAmount() : 0,
-                        "isOccupied", unit.getIsOccupied() != null ? unit.getIsOccupied() : false,
-                        "propertyId", unit.getProperty().getPropertyId(),
-                        "propertyName", unit.getProperty().getName(),
-                        "lastSyncTime", unit.getLastSyncTime() != null ? unit.getLastSyncTime() : ""
-                )))
+                .map(unit -> ResponseEntity.ok(toResponse(unit)))
                 .orElse(ResponseEntity.status(403).build());
+    }
+
+    private UnitResponse toResponse(Unit unit) {
+        return new UnitResponse(
+                unit.getUnitId(),
+                unit.getUnitNumber(),
+                unit.getExternalUnitId(),
+                unit.getUnitType(),
+                unit.getSquareFootage(),
+                unit.getBedrooms(),
+                unit.getBathrooms(),
+                unit.getRentAmount(),
+                unit.getIsOccupied(),
+                unit.getProperty().getPropertyId(),
+                unit.getProperty().getName(),
+                unit.getLastSyncTime()
+        );
     }
 }

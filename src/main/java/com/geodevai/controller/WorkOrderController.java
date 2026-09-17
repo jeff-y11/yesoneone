@@ -1,5 +1,7 @@
 package com.geodevai.controller;
 
+import com.geodevai.data.dto.SearchResponse;
+import com.geodevai.data.dto.WorkOrderResponse;
 import com.geodevai.data.model.Organization;
 import com.geodevai.data.model.User;
 import com.geodevai.data.model.WorkOrder;
@@ -13,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -26,7 +27,7 @@ public class WorkOrderController {
     private final UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getWorkOrders(
+    public ResponseEntity<SearchResponse<WorkOrderResponse>> getWorkOrders(
             @RequestParam(required = false, defaultValue = "") String search,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) UUID propertyId) {
@@ -53,11 +54,10 @@ public class WorkOrderController {
                                     .filter(wo -> wo.getStatus().equalsIgnoreCase(status))
                                     .toList();
                         }
-                        return ResponseEntity.ok((Map<String, Object>) Map.of(
-                                "items", propertyWorkOrders,
-                                "count", propertyWorkOrders.size(),
-                                "query", search
-                        ));
+                        List<WorkOrderResponse> items = propertyWorkOrders.stream()
+                                .map(this::toResponse)
+                                .toList();
+                        return ResponseEntity.ok(new SearchResponse<>(items, items.size(), search));
                     })
                     .orElse(ResponseEntity.status(403).build());
         }
@@ -73,15 +73,15 @@ public class WorkOrderController {
             workOrders = workOrderRepository.searchByOrganizationAndQuery(org, search);
         }
 
-        return ResponseEntity.ok(Map.of(
-                "items", workOrders,
-                "count", workOrders.size(),
-                "query", search
-        ));
+        List<WorkOrderResponse> items = workOrders.stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(new SearchResponse<>(items, items.size(), search));
     }
 
     @GetMapping("/{workOrderId}")
-    public ResponseEntity<Map<String, Object>> getWorkOrder(@PathVariable UUID workOrderId) {
+    public ResponseEntity<WorkOrderResponse> getWorkOrder(@PathVariable UUID workOrderId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String userId = auth.getName();
         User user = userRepository.findById(UUID.fromString(userId))
@@ -94,27 +94,38 @@ public class WorkOrderController {
         return workOrderRepository.findById(workOrderId)
                 .filter(wo -> wo.getProperty().getOrganization().getOrganizationId()
                         .equals(user.getOrganization().getOrganizationId()))
-                .map(wo -> ResponseEntity.ok((Map<String, Object>) Map.of(
-                        "workOrderId", wo.getWorkOrderId(),
-                        "externalWorkOrderId", wo.getExternalWorkOrderId(),
-                        "title", wo.getTitle(),
-                        "summary", wo.getSummary() != null ? wo.getSummary() : "",
-                        "status", wo.getStatus(),
-                        "priority", wo.getPriority() != null ? wo.getPriority() : "",
-                        "amount", wo.getAmount() != null ? wo.getAmount() : 0,
-                        "dueDate", wo.getDueDate() != null ? wo.getDueDate() : "",
-                        "completionDate", wo.getCompletionDate() != null ? wo.getCompletionDate() : "",
-                        "propertyId", wo.getProperty() != null ? wo.getProperty().getPropertyId() : null,
-                        "propertyName", wo.getProperty() != null ? wo.getProperty().getName() : "",
-                        "unitId", wo.getUnit() != null ? wo.getUnit().getUnitId() : null,
-                        "unitNumber", wo.getUnit() != null ? wo.getUnit().getUnitNumber() : "",
-                        "tenantId", wo.getTenant() != null ? wo.getTenant().getPersonId() : null,
-                        "tenantName", wo.getTenant() != null ? wo.getTenant().getFirstName() + " " + wo.getTenant().getLastName() : "",
-                        "callSource", wo.getCallSource() != null ? wo.getCallSource() : "",
-                        "callerName", wo.getCallerName() != null ? wo.getCallerName() : "",
-                        "callerContactInfo", wo.getCallerContactInfo() != null ? wo.getCallerContactInfo() : "",
-                        "lastSyncTime", wo.getLastSyncTime() != null ? wo.getLastSyncTime() : ""
-                )))
+                .map(wo -> ResponseEntity.ok(toResponse(wo)))
                 .orElse(ResponseEntity.status(403).build());
+    }
+
+    private WorkOrderResponse toResponse(WorkOrder wo) {
+        String tenantName = null;
+        if (wo.getTenant() != null) {
+            String first = wo.getTenant().getFirstName() != null ? wo.getTenant().getFirstName() : "";
+            String last = wo.getTenant().getLastName() != null ? wo.getTenant().getLastName() : "";
+            tenantName = (first + " " + last).trim();
+        }
+
+        return new WorkOrderResponse(
+                wo.getWorkOrderId(),
+                wo.getExternalWorkOrderId(),
+                wo.getTitle(),
+                wo.getSummary(),
+                wo.getStatus(),
+                wo.getPriority(),
+                wo.getAmount(),
+                wo.getDueDate(),
+                wo.getCompletionDate(),
+                wo.getProperty() != null ? wo.getProperty().getPropertyId() : null,
+                wo.getProperty() != null ? wo.getProperty().getName() : null,
+                wo.getUnit() != null ? wo.getUnit().getUnitId() : null,
+                wo.getUnit() != null ? wo.getUnit().getUnitNumber() : null,
+                wo.getTenant() != null ? wo.getTenant().getPersonId() : null,
+                tenantName,
+                wo.getCallSource(),
+                wo.getCallerName(),
+                wo.getCallerContactInfo(),
+                wo.getLastSyncTime()
+        );
     }
 }

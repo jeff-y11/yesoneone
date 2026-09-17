@@ -1,5 +1,7 @@
 package com.geodevai.controller;
 
+import com.geodevai.data.dto.PropertyResponse;
+import com.geodevai.data.dto.SearchResponse;
 import com.geodevai.data.model.Organization;
 import com.geodevai.data.model.Property;
 import com.geodevai.data.model.User;
@@ -24,7 +26,7 @@ public class PropertyController {
     private final UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getProperties(
+    public ResponseEntity<SearchResponse<PropertyResponse>> getProperties(
             @RequestParam(required = false, defaultValue = "") String search) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String userId = auth.getName();
@@ -44,15 +46,15 @@ public class PropertyController {
             properties = propertyRepository.searchByOrganizationAndQuery(org, search);
         }
 
-        return ResponseEntity.ok(Map.of(
-                "items", properties,
-                "count", properties.size(),
-                "query", search
-        ));
+        List<PropertyResponse> items = properties.stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(new SearchResponse<>(items, items.size(), search));
     }
 
     @GetMapping("/{propertyId}")
-    public ResponseEntity<Map<String, Object>> getProperty(@PathVariable UUID propertyId) {
+    public ResponseEntity<PropertyResponse> getProperty(@PathVariable UUID propertyId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String userId = auth.getName();
         User user = userRepository.findById(UUID.fromString(userId))
@@ -65,17 +67,33 @@ public class PropertyController {
         return propertyRepository.findById(propertyId)
                 .filter(property -> property.getOrganization().getOrganizationId()
                         .equals(user.getOrganization().getOrganizationId()))
-                .map(property -> ResponseEntity.ok((Map<String, Object>) Map.of(
-                        "propertyId", property.getPropertyId(),
-                        "name", property.getName(),
-                        "externalPropertyId", property.getExternalPropertyId(),
-                        "propertyType", property.getPropertyType() != null ? property.getPropertyType() : "",
-                        "numberOfUnits", property.getNumberOfUnits() != null ? property.getNumberOfUnits() : 0,
-                        "managementCompany", property.getManagementCompany() != null ? property.getManagementCompany() : "",
-                        "address", property.getAddress() != null ? property.getAddress() : Map.of(),
-                        "organizationId", property.getOrganization().getOrganizationId(),
-                        "lastSyncTime", property.getLastSyncTime() != null ? property.getLastSyncTime() : ""
-                )))
+                .map(property -> ResponseEntity.ok(toResponse(property)))
                 .orElse(ResponseEntity.status(403).build());
+    }
+
+    private PropertyResponse toResponse(Property property) {
+        Map<String, Object> address = property.getAddress() != null
+                ? Map.of(
+                    "addressId", property.getAddress().getAddressId(),
+                    "addressLine1", property.getAddress().getAddressLine1() != null ? property.getAddress().getAddressLine1() : "",
+                    "addressLine2", property.getAddress().getAddressLine2() != null ? property.getAddress().getAddressLine2() : "",
+                    "city", property.getAddress().getCity() != null ? property.getAddress().getCity() : "",
+                    "state", property.getAddress().getState() != null ? property.getAddress().getState() : "",
+                    "postalCode", property.getAddress().getPostalCode() != null ? property.getAddress().getPostalCode() : "",
+                    "country", property.getAddress().getCountry() != null ? property.getAddress().getCountry() : ""
+                )
+                : Map.of();
+
+        return new PropertyResponse(
+                property.getPropertyId(),
+                property.getName(),
+                property.getExternalPropertyId(),
+                property.getPropertyType(),
+                property.getNumberOfUnits(),
+                property.getManagementCompany(),
+                address,
+                property.getOrganization().getOrganizationId(),
+                property.getLastSyncTime()
+        );
     }
 }

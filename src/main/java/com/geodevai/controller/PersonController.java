@@ -1,5 +1,7 @@
 package com.geodevai.controller;
 
+import com.geodevai.data.dto.PersonResponse;
+import com.geodevai.data.dto.SearchResponse;
 import com.geodevai.data.model.Organization;
 import com.geodevai.data.model.Person;
 import com.geodevai.data.model.User;
@@ -12,7 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -24,7 +25,7 @@ public class PersonController {
     private final UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getPersons(
+    public ResponseEntity<SearchResponse<PersonResponse>> getPersons(
             @RequestParam(required = false, defaultValue = "") String search) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String userId = auth.getName();
@@ -44,15 +45,15 @@ public class PersonController {
             persons = personRepository.searchByOrganizationAndQuery(org, search);
         }
 
-        return ResponseEntity.ok(Map.of(
-                "items", persons,
-                "count", persons.size(),
-                "query", search
-        ));
+        List<PersonResponse> items = persons.stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(new SearchResponse<>(items, items.size(), search));
     }
 
     @GetMapping("/{personId}")
-    public ResponseEntity<Map<String, Object>> getPerson(@PathVariable UUID personId) {
+    public ResponseEntity<PersonResponse> getPerson(@PathVariable UUID personId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String userId = auth.getName();
         User user = userRepository.findById(UUID.fromString(userId))
@@ -65,20 +66,24 @@ public class PersonController {
         return personRepository.findById(personId)
                 .filter(person -> person.getIntegration().getOrganization().getOrganizationId()
                         .equals(user.getOrganization().getOrganizationId()))
-                .map(person -> ResponseEntity.ok((Map<String, Object>) Map.of(
-                        "personId", person.getPersonId(),
-                        "firstName", person.getFirstName() != null ? person.getFirstName() : "",
-                        "lastName", person.getLastName() != null ? person.getLastName() : "",
-                        "externalTenantId", person.getExternalTenantId(),
-                        "phoneNumber", person.getPhoneNumber() != null ? person.getPhoneNumber() : "",
-                        "email", person.getEmail() != null ? person.getEmail() : "",
-                        "leaseStartDate", person.getLeaseStartDate() != null ? person.getLeaseStartDate() : "",
-                        "leaseEndDate", person.getLeaseEndDate() != null ? person.getLeaseEndDate() : "",
-                        "unitId", person.getUnit() != null ? person.getUnit().getUnitId() : null,
-                        "unitNumber", person.getUnit() != null ? person.getUnit().getUnitNumber() : "",
-                        "integrationId", person.getIntegration().getIntegrationId(),
-                        "lastSyncTime", person.getLastSyncTime() != null ? person.getLastSyncTime() : ""
-                )))
+                .map(person -> ResponseEntity.ok(toResponse(person)))
                 .orElse(ResponseEntity.status(403).build());
+    }
+
+    private PersonResponse toResponse(Person person) {
+        return new PersonResponse(
+                person.getPersonId(),
+                person.getFirstName(),
+                person.getLastName(),
+                person.getExternalTenantId(),
+                person.getPhoneNumber(),
+                person.getEmail(),
+                person.getLeaseStartDate(),
+                person.getLeaseEndDate(),
+                person.getUnit() != null ? person.getUnit().getUnitId() : null,
+                person.getUnit() != null ? person.getUnit().getUnitNumber() : null,
+                person.getIntegration().getIntegrationId(),
+                person.getLastSyncTime()
+        );
     }
 }
