@@ -22,7 +22,7 @@ This directory contains a series of structured tasks designed to upgrade the app
 | [TASK-014](./TASK-014.md) | Frontend - Integrations Management Page | Create `/home/integrations` page with full CRUD (list, create, edit, delete), dynamic parameter grid, type selector, backend API, routing, sidebar. | TASK-011 | Completed |
 | [TASK-015](./TASK-015.md) | Audit & Fix Existing Entities | Review all entities (User, Person, Login, McpKey, Organization, Integration) against EntityStandards.md; fix fetch types, collection types, Lombok, cascade. | TASK-011 | Completed |
 | [TASK-016](./TASK-016.md) | Add createdByName/modifiedByName to AuditFields | Add `createdByName` and `modifiedByName` to AuditFields for historical auditability after hard-delete of users (GDPR/CCPA compliance). | TASK-010 | Completed |
-| [TASK-017](./TASK-017.md) | Create Address Entity | Create `Address` entity with address fields (line1, line2, line3, city, state, postalCode, country) for Property, Unit, and Person addresses. | None | Open |
+| [TASK-017](./TASK-017.md) | Create Address Entity | Create `Address` entity with address fields (line1, line2, line3, city, state, postalCode, country) for Property, Unit, and Person addresses. | None | **Completed** |
 | [TASK-018](./TASK-018.md) | Create Property Entity | Create `Property` entity implementing `Externalable` with name, externalPropertyId, propertyType, numberOfUnits, managementCompany, and Address/Organization relationships. | TASK-017 | Open |
 | [TASK-019](./TASK-019.md) | Create Unit Entity | Create `Unit` entity implementing `Externalable` with unitNumber, externalUnitId, unitType, squareFootage, bedrooms, bathrooms, rentAmount, isOccupied, and Property/Address relationships. | TASK-017, TASK-018 | Open |
 | [TASK-020](./TASK-020.md) | Enhance Person Entity for PM Integration | Add phoneNumber, email, externalTenantId, leaseStartDate, leaseEndDate, User, Integration, and Unit relationships to existing Person entity. Person implements Externalable. Tenant represented by Person, not separate entity. Organization resolved via person.getUser().getOrganization() or person.getIntegration().getOrganization(). | TASK-019 | Open |
@@ -46,5 +46,11 @@ This directory contains a series of structured tasks designed to upgrade the app
 - **Cancelled**: The task is no longer necessary. The goal was either already achieved by another task, deemed unnecessary, or superseded by a different approach.
 
 ### Next Agent Instructions
+1) If not given a task by the prompt, find the first `Open` task with all dependencies finished in sequential order and work to complete it.
+2) Update its status to `Completed` if successful.
+3) Commit all changed files via git commit -m "<msg>" where <msg> is: TASK-<###>: <Title>
 
-When you complete a task, please update its status from `Open` to `Completed` in the table above. The next agent should follow this pattern: If not givent a task by the prompt, find the first `Open` task in sequential order and work to complete it, then update its status to `Completed` if successful.
+### Generaal constraints
+
+1) use gradle <gradle commands> --no-daemon - some opencode integrations do not recognize when a gradle command finishes, also, do not use gradlew.bat
+2) use powershell commands, not bash
