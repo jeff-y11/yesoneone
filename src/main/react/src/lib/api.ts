@@ -59,7 +59,7 @@ export async function fetchIntegrations(orgId: string): Promise<Integration[]> {
 
   const data = await res.json();
   const integrations = data._embedded?.integrations ?? [];
-  return integrations.filter((i: Integration) => i.active);
+  return integrations;
 }
 
 export async function createIntegration(integration: {
@@ -99,4 +99,21 @@ export async function deleteIntegration(integrationId: string): Promise<{ error?
   }
 
   return {};
+}
+
+export async function toggleActiveIntegration(integrationId: string): Promise<{ active?: boolean; error?: string }> {
+  const token = requireToken();
+  if (!token) return { error: "Not authenticated" };
+
+  const res = await fetch(`/services/integrations/${integrationId}/toggle-active`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    const data = await res.json();
+    return { error: data.error || "Failed to toggle integration" };
+  }
+
+  return await res.json();
 }

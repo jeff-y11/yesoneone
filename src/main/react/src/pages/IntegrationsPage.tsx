@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLoaderData, useFetcher, redirect } from "react-router-dom";
-import { fetchIntegrations, createIntegration, deleteIntegration, Integration } from "../lib/api";
+import { fetchIntegrations, createIntegration, deleteIntegration, toggleActiveIntegration, Integration } from "../lib/api";
 
 export async function loader() {
   const integrations = await fetchIntegrations("");
@@ -31,6 +31,11 @@ export async function action({ request }: { request: Request }) {
   if (intent === "delete") {
     const integrationId = formData.get("integrationId") as string;
     return deleteIntegration(integrationId);
+  }
+
+  if (intent === "toggle") {
+    const integrationId = formData.get("integrationId") as string;
+    return toggleActiveIntegration(integrationId);
   }
 
   return null;
@@ -184,7 +189,7 @@ export default function IntegrationsPage() {
   const [editItem, setEditItem] = useState<Integration | null>(null);
   const [deleteItem, setDeleteItem] = useState<Integration | null>(null);
 
-  const items = integrations?.filter((i) => i.active) ?? [];
+  const items = integrations ?? [];
 
   return (
     <div className="flex-1 p-6 overflow-auto">
@@ -213,8 +218,17 @@ export default function IntegrationsPage() {
             </thead>
             <tbody className="divide-y divide-slate-200">
               {items.map((item) => (
-                <tr key={item.integrationId} className="hover:bg-slate-50">
-                  <td className="px-6 py-4 text-sm font-medium">{item.name}</td>
+                <tr key={item.integrationId} className={`hover:bg-slate-50 ${!item.active ? 'bg-slate-50 opacity-75' : ''}`}>
+                  <td className="px-6 py-4 text-sm font-medium">
+                    <div className="flex items-center gap-2">
+                      {item.name}
+                      {!item.active && (
+                        <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">
+                          Paused
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-sm">
                     <span className="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700">
                       {item.type === "WEB_HEADER" ? "Header" : "Query"}
@@ -222,6 +236,17 @@ export default function IntegrationsPage() {
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-500 truncate max-w-xs">{item.endpoint}</td>
                   <td className="px-6 py-4 text-sm space-x-3">
+                    <button
+                      onClick={() => {
+                        fetcher.submit(
+                          { intent: "toggle", integrationId: item.integrationId },
+                          { method: "post" }
+                        );
+                      }}
+                      className={item.active ? "text-amber-600 hover:text-amber-800" : "text-green-600 hover:text-green-800"}
+                    >
+                      {item.active ? "Pause" : "Resume"}
+                    </button>
                     <button
                       onClick={() => setEditItem(item)}
                       className="text-blue-600 hover:text-blue-800"

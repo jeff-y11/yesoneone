@@ -125,4 +125,29 @@ public class IntegrationController {
             "message", "Integration run initiated"
         ));
     }
+
+    @PostMapping("/{integrationId}/toggle-active")
+    public ResponseEntity<Map<String, Object>> toggleActive(@PathVariable UUID integrationId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userId = auth.getName();
+        User user = userRepository.findById(UUID.fromString(userId))
+                .orElseThrow();
+
+        Integration integration = integrationRepository.findById(integrationId)
+                .orElseThrow();
+
+        if (user.getOrganization() == null ||
+            !user.getOrganization().getOrganizationId().equals(integration.getOrganization().getOrganizationId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        integration.setActive(!integration.isActive());
+        integrationRepository.save(integration);
+
+        return ResponseEntity.ok(Map.of(
+            "integrationId", integration.getIntegrationId(),
+            "active", integration.isActive(),
+            "message", integration.isActive() ? "Integration activated" : "Integration paused"
+        ));
+    }
 }
