@@ -8,50 +8,52 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "property")
+@Table(name = "unit")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Property extends AuditableEntity implements Externalable {
+public class Unit extends AuditableEntity implements Externalable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID propertyId;
+    private UUID unitId;
 
     @Column(nullable = false)
-    private String name;
+    private String unitNumber;
 
     @Column(nullable = false)
-    private String externalPropertyId;
+    private String externalUnitId;
 
-    private String propertyType;
+    private String unitType;
 
-    private Integer numberOfUnits;
+    private Integer squareFootage;
 
-    private String managementCompany;
+    private Integer bedrooms;
+
+    private Integer bathrooms;
+
+    private BigDecimal rentAmount;
+
+    private Boolean isOccupied = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "property_id", nullable = false)
+    private Property property;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id")
     private Address address;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
-
-    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY)
-    private Set<Unit> units = new java.util.HashSet<>();
 
     @Transient
     private UUID integrationId;
@@ -63,9 +65,9 @@ public class Property extends AuditableEntity implements Externalable {
     @Override
     public void setIntegrationId(UUID integrationId) { this.integrationId = integrationId; }
     @Override
-    public String getIntegrationRemoteId() { return externalPropertyId; }
+    public String getIntegrationRemoteId() { return externalUnitId; }
     @Override
-    public void setIntegrationRemoteId(String integrationRemoteId) { this.externalPropertyId = integrationRemoteId; }
+    public void setIntegrationRemoteId(String integrationRemoteId) { this.externalUnitId = integrationRemoteId; }
     @Override
     public LocalDateTime getLastSyncTime() { return lastSyncTime; }
     @Override
