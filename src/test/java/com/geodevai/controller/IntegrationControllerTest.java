@@ -140,4 +140,74 @@ class IntegrationControllerTest {
 
         verify(integrationRepository, times(1)).save(any(Integration.class));
     }
+
+    @Test
+    void testToggleActive_ValidUser_TogglesActive() throws Exception {
+        User user = new User();
+        user.setUserId(testUserId);
+        Organization org = new Organization();
+        org.setOrganizationId(UUID.randomUUID());
+        user.setOrganization(org);
+
+        Integration integration = new Integration();
+        integration.setIntegrationId(testIntegrationId);
+        integration.setActive(true);
+        integration.setOrganization(org);
+
+        when(userRepository.findById(testUserId)).thenReturn(Optional.of(user));
+        when(integrationRepository.findById(testIntegrationId)).thenReturn(Optional.of(integration));
+
+        mockMvc.perform(post("/services/integrations/{integrationId}/toggle-active", testIntegrationId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(false))
+                .andExpect(jsonPath("$.message").value("Integration paused"));
+
+        verify(integrationRepository, times(1)).save(integration);
+    }
+
+    @Test
+    void testToggleActive_UserNotInOrg_ReturnsForbidden() throws Exception {
+        User user = new User();
+        user.setUserId(testUserId);
+        Organization org = new Organization();
+        org.setOrganizationId(UUID.randomUUID());
+        user.setOrganization(org);
+
+        Integration integration = new Integration();
+        integration.setIntegrationId(testIntegrationId);
+        Organization otherOrg = new Organization();
+        otherOrg.setOrganizationId(UUID.randomUUID());
+        integration.setOrganization(otherOrg);
+
+        when(userRepository.findById(testUserId)).thenReturn(Optional.of(user));
+        when(integrationRepository.findById(testIntegrationId)).thenReturn(Optional.of(integration));
+
+        mockMvc.perform(post("/services/integrations/{integrationId}/toggle-active", testIntegrationId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void testToggleActive_TogglesBackAndForth() throws Exception {
+        User user = new User();
+        user.setUserId(testUserId);
+        Organization org = new Organization();
+        org.setOrganizationId(UUID.randomUUID());
+        user.setOrganization(org);
+
+        Integration integration = new Integration();
+        integration.setIntegrationId(testIntegrationId);
+        integration.setActive(false);
+        integration.setOrganization(org);
+
+        when(userRepository.findById(testUserId)).thenReturn(Optional.of(user));
+        when(integrationRepository.findById(testIntegrationId)).thenReturn(Optional.of(integration));
+
+        mockMvc.perform(post("/services/integrations/{integrationId}/toggle-active", testIntegrationId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(true))
+                .andExpect(jsonPath("$.message").value("Integration activated"));
+    }
 }
