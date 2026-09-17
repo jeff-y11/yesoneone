@@ -6,6 +6,10 @@ import Home from "./Home";
 import McpKeyPage, { loader as keysLoader, action as keysAction } from "./pages/McpKeyPage";
 import OrganizationPage, { loader as orgLoader, action as orgAction } from "./pages/OrganizationPage";
 import IntegrationsPage, { loader as integrationsLoader, action as integrationsAction } from "./pages/IntegrationsPage";
+import PropertySearchPage from "./pages/PropertySearchPage";
+import UnitSearchPage from "./pages/UnitSearchPage";
+import PersonSearchPage from "./pages/PersonSearchPage";
+import WorkOrderSearchPage from "./pages/WorkOrderSearchPage";
 import Layout from "./components/Layout";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -54,6 +58,22 @@ const router = createBrowserRouter([
         element: <IntegrationsPage />,
         loader: integrationsLoader,
         action: integrationsAction,
+      },
+      {
+        path: "properties",
+        element: <PropertySearchPage />,
+      },
+      {
+        path: "units",
+        element: <UnitSearchPage />,
+      },
+      {
+        path: "persons",
+        element: <PersonSearchPage />,
+      },
+      {
+        path: "work-orders",
+        element: <WorkOrderSearchPage />,
       },
     ],
   },

@@ -134,3 +134,165 @@ export async function runIntegration(integrationId: string): Promise<{ status?: 
 
   return await res.json();
 }
+
+export interface PropertyData {
+  propertyId: string;
+  name: string;
+  externalPropertyId: string;
+  propertyType?: string;
+  numberOfUnits?: number;
+  managementCompany?: string;
+  address?: Record<string, unknown>;
+  organizationId: string;
+  lastSyncTime?: string;
+}
+
+export interface UnitData {
+  unitId: string;
+  unitNumber: string;
+  externalUnitId: string;
+  unitType?: string;
+  squareFootage?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  rentAmount?: number;
+  isOccupied?: boolean;
+  propertyId: string;
+  propertyName?: string;
+  lastSyncTime?: string;
+}
+
+export interface PersonData {
+  personId: string;
+  firstName?: string;
+  lastName?: string;
+  externalTenantId: string;
+  phoneNumber?: string;
+  email?: string;
+  leaseStartDate?: string;
+  leaseEndDate?: string;
+  unitId?: string;
+  unitNumber?: string;
+  integrationId?: string;
+  lastSyncTime?: string;
+}
+
+export interface WorkOrderData {
+  workOrderId: string;
+  externalWorkOrderId: string;
+  title: string;
+  summary?: string;
+  status: string;
+  priority?: string;
+  amount?: number;
+  dueDate?: string;
+  completionDate?: string;
+  propertyId?: string;
+  propertyName?: string;
+  unitId?: string;
+  unitNumber?: string;
+  tenantId?: string;
+  tenantName?: string;
+  callSource?: string;
+  callerName?: string;
+  callerContactInfo?: string;
+  lastSyncTime?: string;
+}
+
+export async function searchProperties(query: string): Promise<PropertyData[]> {
+  const token = requireToken();
+  if (!token) return [];
+
+  const params = new URLSearchParams();
+  if (query) params.append("search", query);
+
+  const res = await fetch(`/services/properties?${params.toString()}`, { headers: authHeaders() });
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  return data.items ?? [];
+}
+
+export async function getProperty(propertyId: string): Promise<PropertyData | null> {
+  const token = requireToken();
+  if (!token) return null;
+
+  const res = await fetch(`/services/properties/${propertyId}`, { headers: authHeaders() });
+  if (!res.ok) return null;
+
+  return await res.json();
+}
+
+export async function searchUnits(query: string, propertyId?: string): Promise<UnitData[]> {
+  const token = requireToken();
+  if (!token) return [];
+
+  const params = new URLSearchParams();
+  if (query) params.append("search", query);
+  if (propertyId) params.append("propertyId", propertyId);
+
+  const res = await fetch(`/services/units?${params.toString()}`, { headers: authHeaders() });
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  return data.items ?? [];
+}
+
+export async function getUnit(unitId: string): Promise<UnitData | null> {
+  const token = requireToken();
+  if (!token) return null;
+
+  const res = await fetch(`/services/units/${unitId}`, { headers: authHeaders() });
+  if (!res.ok) return null;
+
+  return await res.json();
+}
+
+export async function searchPersons(query: string): Promise<PersonData[]> {
+  const token = requireToken();
+  if (!token) return [];
+
+  const params = new URLSearchParams();
+  if (query) params.append("search", query);
+
+  const res = await fetch(`/services/persons?${params.toString()}`, { headers: authHeaders() });
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  return data.items ?? [];
+}
+
+export async function getPerson(personId: string): Promise<PersonData | null> {
+  const token = requireToken();
+  if (!token) return null;
+
+  const res = await fetch(`/services/persons/${personId}`, { headers: authHeaders() });
+  if (!res.ok) return null;
+
+  return await res.json();
+}
+
+export async function searchWorkOrders(query: string, status?: string): Promise<WorkOrderData[]> {
+  const token = requireToken();
+  if (!token) return [];
+
+  const params = new URLSearchParams();
+  if (query) params.append("search", query);
+  if (status) params.append("status", status);
+
+  const res = await fetch(`/services/work-orders?${params.toString()}`, { headers: authHeaders() });
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  return data.items ?? [];
+}
+
+export async function getWorkOrder(workOrderId: string): Promise<WorkOrderData | null> {
+  const token = requireToken();
+  if (!token) return null;
+
+  const res = await fetch(`/services/work-orders/${workOrderId}`, { headers: authHeaders() });
+  if (!res.ok) return null;
+
+  return await res.json();
+}

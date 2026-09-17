@@ -45,6 +45,46 @@ export default function Sidebar() {
         >
           MCP API Keys
         </NavLink>
+        <NavLink
+          to="/home/properties"
+          className={({ isActive }) =>
+            `px-4 py-2 rounded transition-colors ${
+              isActive ? "bg-slate-600" : "hover:bg-slate-700"
+            }`
+          }
+        >
+          Properties
+        </NavLink>
+        <NavLink
+          to="/home/units"
+          className={({ isActive }) =>
+            `px-4 py-2 rounded transition-colors ${
+              isActive ? "bg-slate-600" : "hover:bg-slate-700"
+            }`
+          }
+        >
+          Units
+        </NavLink>
+        <NavLink
+          to="/home/persons"
+          className={({ isActive }) =>
+            `px-4 py-2 rounded transition-colors ${
+              isActive ? "bg-slate-600" : "hover:bg-slate-700"
+            }`
+          }
+        >
+          Persons
+        </NavLink>
+        <NavLink
+          to="/home/work-orders"
+          className={({ isActive }) =>
+            `px-4 py-2 rounded transition-colors ${
+              isActive ? "bg-slate-600" : "hover:bg-slate-700"
+            }`
+          }
+        >
+          Work Orders
+        </NavLink>
       </nav>
     </aside>
   );
