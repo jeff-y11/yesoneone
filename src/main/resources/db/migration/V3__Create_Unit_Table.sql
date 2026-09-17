@@ -1,0 +1,22 @@
+CREATE TABLE unit (
+    unit_id UUID PRIMARY KEY,
+    unit_number VARCHAR(50) NOT NULL,
+    external_unit_id VARCHAR(255) NOT NULL,
+    unit_type VARCHAR(255),
+    square_footage INTEGER,
+    bedrooms INTEGER,
+    bathrooms INTEGER,
+    rent_amount DECIMAL(19,2),
+    is_occupied BOOLEAN DEFAULT FALSE,
+    property_id UUID NOT NULL,
+    address_id UUID,
+    created_by UUID NOT NULL,
+    created TIMESTAMP NOT NULL,
+    modified_by UUID NOT NULL,
+    modified TIMESTAMP NOT NULL,
+    updated_source VARCHAR(255),
+    created_by_name VARCHAR(255),
+    modified_by_name VARCHAR(255),
+    FOREIGN KEY (property_id) REFERENCES property(property_id),
+    FOREIGN KEY (address_id) REFERENCES address(address_id)
+);
