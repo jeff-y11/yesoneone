@@ -26,6 +26,7 @@ public class Integration extends AuditableEntity {
     private String endpoint;
 
     @Column(nullable = false)
+    /** Valid values are defined by {@link com.geodevai.integration.IntegrationType} enum names. */
     private String type;
 
     @Column(nullable = false)
