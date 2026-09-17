@@ -50,11 +50,10 @@ class IntegrationJobServiceTest {
         schedule.setMaxRetries(3);
 
         when(scheduleRepository.findByActiveIsTrue()).thenReturn(List.of(schedule));
-        when(integrationRepository.findById(any(UUID.class))).thenReturn(Optional.of(integration));
 
         jobService.runScheduledIntegrations();
 
-        verify(dispatcher, times(1)).dispatch(any(UUID.class), eq(integrationRepository));
+        verify(dispatcher, times(1)).dispatch(eq(integration.getIntegrationId()), eq(integrationRepository));
         verify(scheduleRepository, times(1)).save(schedule);
     }
 
@@ -91,8 +90,6 @@ class IntegrationJobServiceTest {
         schedule.setActive(true);
 
         when(scheduleRepository.findByActiveIsTrue()).thenReturn(List.of(schedule));
-        when(integrationRepository.findById(any(UUID.class))).thenReturn(Optional.of(integration));
-
         doThrow(new RuntimeException("Dispatch failed")).when(dispatcher).dispatch(any(UUID.class), any());
 
         jobService.runScheduledIntegrations();

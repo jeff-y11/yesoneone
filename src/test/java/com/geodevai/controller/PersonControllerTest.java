@@ -13,9 +13,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,6 +49,8 @@ class PersonControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(testUserId, null, Collections.emptyList()));
     }
 
     @Test
@@ -56,9 +61,16 @@ class PersonControllerTest {
         org.setOrganizationId(testOrgId);
         user.setOrganization(org);
 
+        Integration integration = new Integration();
+        integration.setIntegrationId(UUID.randomUUID());
+        integration.setOrganization(org);
+
         Person person = new Person();
         person.setPersonId(UUID.randomUUID());
         person.setFirstName("John");
+        person.setLastName("Doe");
+        person.setExternalTenantId("T-001");
+        person.setIntegration(integration);
 
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(user));
         when(personRepository.findByOrganization(eq(org))).thenReturn(List.of(person));
@@ -78,9 +90,16 @@ class PersonControllerTest {
         org.setOrganizationId(testOrgId);
         user.setOrganization(org);
 
+        Integration integration = new Integration();
+        integration.setIntegrationId(UUID.randomUUID());
+        integration.setOrganization(org);
+
         Person person = new Person();
         person.setPersonId(UUID.randomUUID());
         person.setFirstName("John");
+        person.setLastName("Doe");
+        person.setExternalTenantId("T-001");
+        person.setIntegration(integration);
 
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(user));
         when(personRepository.searchByOrganizationAndQuery(eq(org), eq("John"))).thenReturn(List.of(person));

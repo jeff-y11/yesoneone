@@ -14,10 +14,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.Map;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -52,6 +54,8 @@ class IntegrationControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(testUserId, null, Collections.emptyList()));
     }
 
     @Test
@@ -130,13 +134,21 @@ class IntegrationControllerTest {
         user.setOrganization(org);
 
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(user));
+        when(integrationRepository.save(any(Integration.class))).thenAnswer(invocation -> {
+            Integration saved = invocation.getArgument(0);
+            saved.setIntegrationId(UUID.randomUUID());
+            return saved;
+        });
 
         mockMvc.perform(post("/services/integrations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {"name":"Test Integration","endpoint":"http://test.com","type":"BUILDIUM","parameters":{}}
                     """))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.integrationId").isNotEmpty())
+                .andExpect(jsonPath("$.name").value("Test Integration"))
+                .andExpect(jsonPath("$.type").value("BUILDIUM"));
 
         verify(integrationRepository, times(1)).save(any(Integration.class));
     }

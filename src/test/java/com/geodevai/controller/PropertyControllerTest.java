@@ -12,9 +12,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,6 +48,8 @@ class PropertyControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(testUserId, null, Collections.emptyList()));
     }
 
     @Test
@@ -58,6 +63,7 @@ class PropertyControllerTest {
         Property property = new Property();
         property.setPropertyId(UUID.randomUUID());
         property.setName("Test Property");
+        property.setExternalPropertyId("EXT-001");
         property.setOrganization(org);
 
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(user));
@@ -81,6 +87,7 @@ class PropertyControllerTest {
         Property property = new Property();
         property.setPropertyId(UUID.randomUUID());
         property.setName("Test Property");
+        property.setExternalPropertyId("EXT-001");
         property.setOrganization(org);
 
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(user));

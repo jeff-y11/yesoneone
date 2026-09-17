@@ -2,12 +2,8 @@ package com.geodevai.integration;
 
 import com.geodevai.data.model.Integration;
 import com.geodevai.data.repository.IntegrationRepository;
-import com.geodevai.integration.IntegrationDispatcher;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,17 +13,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
 class IntegrationDispatcherTest {
 
-    @Mock
     private IntegrationRepository integrationRepository;
-
-    @Mock
     private IntegrationRunner buildiumRunner;
-
-    @InjectMocks
     private IntegrationDispatcher dispatcher;
+
+    @BeforeEach
+    void setUp() {
+        integrationRepository = mock(IntegrationRepository.class);
+        buildiumRunner = mock(IntegrationRunner.class);
+        when(buildiumRunner.getType()).thenReturn("BUILDIUM");
+        dispatcher = new IntegrationDispatcher(List.of(buildiumRunner));
+    }
 
     @Test
     void testDispatch_ValidType_CallsRunner() {
