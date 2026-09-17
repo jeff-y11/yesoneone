@@ -24,7 +24,6 @@ class IntegrationScheduleRepositoryTest {
     @Test
     void testFindByActiveIsTrue() {
         when(scheduleRepository.findByActiveIsTrue()).thenReturn(List.of());
-
         List<IntegrationSchedule> result = scheduleRepository.findByActiveIsTrue();
         assertNotNull(result);
     }
@@ -33,9 +32,7 @@ class IntegrationScheduleRepositoryTest {
     void testFindByIntegration() {
         IntegrationSchedule schedule = new IntegrationSchedule();
         schedule.setScheduleId(UUID.randomUUID());
-
         when(scheduleRepository.findByIntegration(any(Integration.class))).thenReturn(Optional.of(schedule));
-
         Optional<IntegrationSchedule> found = scheduleRepository.findByIntegration(new Integration());
         assertTrue(found.isPresent());
         assertEquals(schedule.getScheduleId(), found.get().getScheduleId());
