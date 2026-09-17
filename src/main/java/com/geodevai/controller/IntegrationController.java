@@ -6,6 +6,7 @@ import com.geodevai.data.model.User;
 import com.geodevai.data.repository.IntegrationRepository;
 import com.geodevai.data.repository.OrganizationRepository;
 import com.geodevai.data.repository.UserRepository;
+import com.geodevai.integration.IntegrationDispatcher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,7 @@ public class IntegrationController {
     private final IntegrationRepository integrationRepository;
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
+    private final IntegrationDispatcher integrationDispatcher;
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> createIntegration(@RequestBody Map<String, Object> request) {
@@ -94,5 +96,33 @@ public class IntegrationController {
         integrationRepository.save(integration);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{integrationId}/run")
+    public ResponseEntity<Map<String, Object>> runIntegration(@PathVariable UUID integrationId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userId = auth.getName();
+        User user = userRepository.findById(UUID.fromString(userId))
+                .orElseThrow();
+
+        Integration integration = integrationRepository.findById(integrationId)
+                .orElseThrow();
+
+        if (user.getOrganization() == null ||
+            !user.getOrganization().getOrganizationId().equals(integration.getOrganization().getOrganizationId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        if (!integration.isActive()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Integration is not active"));
+        }
+
+        integrationDispatcher.dispatch(integrationId, integrationRepository);
+
+        return ResponseEntity.ok(Map.of(
+            "integrationId", integration.getIntegrationId(),
+            "status", "RUNNING",
+            "message", "Integration run initiated"
+        ));
     }
 }
