@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLoaderData, useFetcher, redirect } from "react-router-dom";
-import { fetchIntegrations, createIntegration, deleteIntegration, toggleActiveIntegration, Integration } from "../lib/api";
+import { fetchIntegrations, createIntegration, deleteIntegration, toggleActiveIntegration, runIntegration, Integration } from "../lib/api";
 
 export async function loader() {
   const integrations = await fetchIntegrations("");
@@ -188,8 +188,27 @@ export default function IntegrationsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [editItem, setEditItem] = useState<Integration | null>(null);
   const [deleteItem, setDeleteItem] = useState<Integration | null>(null);
+  const [runningIds, setRunningIds] = useState<Set<string>>(new Set());
+  const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const items = integrations ?? [];
+
+  const handleRun = async (integrationId: string) => {
+    setRunningIds(new Set([...runningIds, integrationId]));
+    setNotification(null);
+
+    const result = await runIntegration(integrationId);
+
+    setRunningIds(new Set([...runningIds].filter((id) => id !== integrationId)));
+
+    if (result.error) {
+      setNotification({ type: "error", message: result.error });
+    } else {
+      setNotification({ type: "success", message: "Integration run initiated" });
+    }
+
+    setTimeout(() => setNotification(null), 5000);
+  };
 
   return (
     <div className="flex-1 p-6 overflow-auto">
@@ -202,6 +221,12 @@ export default function IntegrationsPage() {
           New Integration
         </button>
       </div>
+
+      {notification && (
+        <div className={`mb-4 p-3 rounded ${notification.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+          {notification.message}
+        </div>
+      )}
 
       {items.length === 0 ? (
         <p className="text-slate-500">No integrations yet. Create one to get started.</p>
@@ -236,6 +261,15 @@ export default function IntegrationsPage() {
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-500 truncate max-w-xs">{item.endpoint}</td>
                   <td className="px-6 py-4 text-sm space-x-3">
+                    {item.active && (
+                      <button
+                        onClick={() => handleRun(item.integrationId)}
+                        disabled={runningIds.has(item.integrationId)}
+                        className="text-green-600 hover:text-green-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {runningIds.has(item.integrationId) ? "Running..." : "Run"}
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         fetcher.submit(

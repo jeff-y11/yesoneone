@@ -117,3 +117,20 @@ export async function toggleActiveIntegration(integrationId: string): Promise<{ 
 
   return await res.json();
 }
+
+export async function runIntegration(integrationId: string): Promise<{ status?: string; integrationId?: string; error?: string }> {
+  const token = requireToken();
+  if (!token) return { error: "Not authenticated" };
+
+  const res = await fetch(`/services/integrations/${integrationId}/run`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    const data = await res.json();
+    return { error: data.error || "Failed to run integration" };
+  }
+
+  return await res.json();
+}
