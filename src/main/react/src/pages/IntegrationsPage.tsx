@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { useLoaderData, useFetcher, redirect } from "react-router-dom";
-import { fetchIntegrations, createIntegration, deleteIntegration, toggleActiveIntegration, runIntegration, Integration } from "../lib/api";
+import { useState, useEffect } from "react";
+import { useLoaderData, useFetcher, redirect, useNavigate } from "react-router-dom";
+import { fetchIntegrations, createIntegration, deleteIntegration, toggleActiveIntegration, runIntegration, fetchOrganization, Integration } from "../lib/api";
 
 export async function loader() {
-  const integrations = await fetchIntegrations("");
+  const org = await fetchOrganization();
+  const orgId = org?.organizationId || "";
+  const integrations = await fetchIntegrations(orgId);
   return integrations;
 }
 
@@ -35,7 +37,8 @@ export async function action({ request }: { request: Request }) {
 
   if (intent === "toggle") {
     const integrationId = formData.get("integrationId") as string;
-    return toggleActiveIntegration(integrationId);
+    const result = await toggleActiveIntegration(integrationId);
+    return { ...result, intent: "toggle" };
   }
 
   return null;
@@ -185,11 +188,18 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
 export default function IntegrationsPage() {
   const integrations = useLoaderData() as Integration[] | undefined;
   const fetcher = useFetcher();
+  const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
   const [editItem, setEditItem] = useState<Integration | null>(null);
   const [deleteItem, setDeleteItem] = useState<Integration | null>(null);
   const [runningIds, setRunningIds] = useState<Set<string>>(new Set());
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data?.intent === "toggle") {
+      navigate(".", { replace: true });
+    }
+  }, [fetcher.state, fetcher.data, navigate]);
 
   const items = integrations ?? [];
 

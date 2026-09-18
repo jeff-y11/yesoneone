@@ -52,7 +52,7 @@ export async function updateOrganization(orgId: string, name: string): Promise<{
 
 export async function fetchIntegrations(orgId: string): Promise<Integration[]> {
   const token = requireToken();
-  if (!token) return [];
+  if (!token || !orgId) return [];
 
   const res = await fetch(`/data/organization/${orgId}/integrations`, { headers: authHeaders() });
   if (!res.ok) return [];
