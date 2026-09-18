@@ -27,6 +27,10 @@ public class BuildiumIntegrationRunner implements IntegrationRunner {
         );
     }
 
+    public String getApiKey(Integration integration) {
+        return integration.getApiKey();
+    }
+
     @Override
     public void run(Integration integration) {
         logger.info("Processing Buildium integration: {} (type: {})", integration.getName(), integration.getType());

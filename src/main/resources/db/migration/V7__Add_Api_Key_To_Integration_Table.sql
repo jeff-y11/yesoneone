@@ -1,0 +1,1 @@
+ALTER TABLE integration ADD COLUMN api_key VARCHAR(255);

@@ -43,6 +43,9 @@ public class Integration extends AuditableEntity {
     @OneToMany(mappedBy = "integration", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<IntegrationCapabilities> capabilities = new HashSet<>();
 
+    @Column(name = "api_key")
+    private String apiKey;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
