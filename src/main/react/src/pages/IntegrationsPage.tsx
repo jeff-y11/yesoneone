@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLoaderData, useFetcher, redirect, useNavigate } from "react-router-dom";
+import { useLoaderData, useFetcher, useNavigate } from "react-router-dom";
 import { fetchIntegrations, createIntegration, deleteIntegration, toggleActiveIntegration, runIntegration, fetchOrganization, Integration } from "../lib/api";
 
 export async function loader() {
@@ -179,6 +179,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+        <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
         {children}
       </div>
     </div>

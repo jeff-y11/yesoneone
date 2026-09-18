@@ -1,4 +1,4 @@
-import { useFetcher, useLoaderData, redirect } from "react-router-dom";
+import { useFetcher, useLoaderData } from "react-router-dom";
 import { fetchOrganization, updateOrganization, Organization } from "../lib/api";
 
 export async function loader() {
