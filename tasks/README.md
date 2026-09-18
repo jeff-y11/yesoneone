@@ -44,13 +44,13 @@ This directory contains a series of structured tasks designed to upgrade the app
 | [TASK-036](./TASK-036.md) | Add REST Search Endpoints for Person, Property, Unit, and WorkOrder | Create REST controller endpoints for searching and viewing Person, Property, Unit, and WorkOrder entities. All results are scoped to the authenticated user's organization. | TASK-035, TASK-029 | **Completed** |
 | [TASK-037](./TASK-037.md) | Frontend - Person, Property, Unit, and WorkOrder Search and View Pages | Create frontend pages for searching and viewing Person, Property, Unit, and WorkOrder entities. All data is scoped to the user's organization. | TASK-035, TASK-036, TASK-032 | **Completed** |
 | [TASK-038](./TASK-038.md) | Search and View Tests for Person, Property, Unit, and WorkOrder | Create integration tests for the new repository methods, REST controllers, and frontend components. | TASK-035, TASK-036, TASK-030 | **Completed** |
-| [TASK-039](./TASK-039.md) | Integration capabilities | Add capabilities model/entity, update Integration to store selected entity capabilities, add capability retrieval endpoint for frontend querying. | TASK-025, TASK-027 | Open |
-| [TASK-040](./TASK-040.md) | Integration credentials | Add API key credential support to Integration entity, update BuildiumIntegrationRunner to use API key auth, follow existing conventions. | TASK-039 | Open |
-| [TASK-041](./TASK-041.md) | Buildium implementation | Implement BuildiumIntegrationRunner with sync for Property, Unit, Tenant, WorkOrder using Buildium OpenAPI spec. | TASK-040 | Open |
-| [TASK-042](./TASK-042.md) | External IDs and relationships | Preserve remote relationship IDs for unresolved relationships, support later reconciliation/true-up. | TASK-041 | Open |
-| [TASK-043](./TASK-043.md) | Synchronization efficiency | Implement batch sync, pagination, cursor/state persistence for subsequent syncs of changed entities. | TASK-042 | Open |
-| [TASK-044](./TASK-044.md) | Synchronization ownership and ordering | Runner determines sync ordering (Property→Unit→Tenant→WorkOrder→true-up), generic dispatcher calls integrationRunner.run(integrationContext). | TASK-043 | Open |
-| [TASK-045](./TASK-045.md) | Manual entity synchronization | OPTIONAL: Allow individual entity type manual sync from frontend/MCP using same implementation, restrict to requested entity type. | TASK-044 | Open |
+| [TASK-039](./TASK-039.md) | Integration capabilities | Add capabilities model/entity, update Integration to store selected entity capabilities, add capability retrieval endpoint for frontend querying. | TASK-025, TASK-027 | **Completed** |
+| [TASK-040](./TASK-040.md) | Integration credentials | Add API key credential support to Integration entity, update BuildiumIntegrationRunner to use API key auth, follow existing conventions. | TASK-039 | **Completed** |
+| [TASK-041](./TASK-041.md) | Buildium implementation | Implement BuildiumIntegrationRunner with sync for Property, Unit, Tenant, WorkOrder using Buildium OpenAPI spec. | TASK-040 | **Completed** |
+| [TASK-042](./TASK-042.md) | External IDs and relationships | Preserve remote relationship IDs for unresolved relationships, support later reconciliation/true-up. | TASK-041 | **Completed** |
+| [TASK-043](./TASK-043.md) | Synchronization efficiency | Implement batch sync, pagination, cursor/state persistence for subsequent syncs of changed entities. | TASK-042 | **Completed** |
+| [TASK-044](./TASK-044.md) | Synchronization ownership and ordering | Runner determines sync ordering (Property→Unit→Tenant→WorkOrder→true-up), generic dispatcher calls integrationRunner.run(integrationContext). | TASK-043 | **Completed** |
+| [TASK-045](./TASK-045.md) | Manual entity synchronization | OPTIONAL: Allow individual entity type manual sync from frontend/MCP using same implementation, restrict to requested entity type. | TASK-044 | **Completed** |
 
 ### Status Explanation
 
