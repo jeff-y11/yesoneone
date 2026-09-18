@@ -118,9 +118,9 @@ export async function toggleActiveIntegration(integrationId: string): Promise<{ 
   return await res.json();
 }
 
-export async function runIntegration(integrationId: string): Promise<{ status?: string; integrationId?: string; error?: string }> {
+export async function runIntegration(integrationId: string): Promise<{ status: string; integrationId: string; error?: string }> {
   const token = requireToken();
-  if (!token) return { error: "Not authenticated" };
+  if (!token) return { error: "Not authenticated" } as any;
 
   const res = await fetch(`/services/integrations/${integrationId}/run`, {
     method: "POST",
@@ -129,7 +129,7 @@ export async function runIntegration(integrationId: string): Promise<{ status?: 
 
   if (!res.ok) {
     const data = await res.json();
-    return { error: data.error || "Failed to run integration" };
+    return { error: data.error || "Failed to run integration" } as any;
   }
 
   return await res.json();
