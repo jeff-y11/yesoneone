@@ -3,28 +3,39 @@ package com.geodevai.controller;
 import com.geodevai.data.model.Integration;
 import com.geodevai.data.model.Organization;
 import com.geodevai.data.model.User;
+import com.geodevai.data.repository.IntegrationCapabilitiesRepository;
 import com.geodevai.data.repository.IntegrationRepository;
 import com.geodevai.data.repository.OrganizationRepository;
 import com.geodevai.data.repository.UserRepository;
 import com.geodevai.integration.IntegrationDispatcher;
-import lombok.RequiredArgsConstructor;
+import com.geodevai.integration.IntegrationRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/services/integrations")
-@RequiredArgsConstructor
 public class IntegrationController {
 
-    private final IntegrationRepository integrationRepository;
-    private final OrganizationRepository organizationRepository;
-    private final UserRepository userRepository;
-    private final IntegrationDispatcher integrationDispatcher;
+    @Autowired
+    private IntegrationRepository integrationRepository;
+    @Autowired
+    private OrganizationRepository organizationRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private IntegrationDispatcher integrationDispatcher;
+    @Autowired
+    private IntegrationCapabilitiesRepository capabilitiesRepository;
+    @Autowired
+    private List<IntegrationRunner> runners;
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> createIntegration(@RequestBody Map<String, Object> request) {
@@ -149,5 +160,38 @@ public class IntegrationController {
             "active", integration.isActive(),
             "message", integration.isActive() ? "Integration activated" : "Integration paused"
         ));
+    }
+
+    @GetMapping("/{integrationId}/capabilities")
+    public ResponseEntity<List<Map<String, Object>>> getCapabilities(@PathVariable UUID integrationId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userId = auth.getName();
+        User user = userRepository.findById(UUID.fromString(userId))
+                .orElseThrow();
+
+        Integration integration = integrationRepository.findById(integrationId)
+                .orElseThrow();
+
+        if (user.getOrganization() == null ||
+            !user.getOrganization().getOrganizationId().equals(integration.getOrganization().getOrganizationId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        IntegrationRunner runner = runners.stream()
+                .filter(r -> r.getType().equals(integration.getType()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No runner registered for type: " + integration.getType()));
+
+        List<Map<String, Object>> capabilityList = runner.getCapabilities().stream()
+                .map(cap -> {
+                    Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("entityType", cap.getEntityType());
+                    map.put("direction", cap.getDirection());
+                    map.put("required", cap.isRequired());
+                    return map;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(capabilityList);
     }
 }

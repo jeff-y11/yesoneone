@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class BuildiumIntegrationRunner implements IntegrationRunner {
 
@@ -13,6 +15,16 @@ public class BuildiumIntegrationRunner implements IntegrationRunner {
     @Override
     public String getType() {
         return IntegrationType.BUILDIUM.getTypeName();
+    }
+
+    @Override
+    public List<Capability> getCapabilities() {
+        return List.of(
+                new Capability("Property", "PULL", false),
+                new Capability("Unit", "PULL", false),
+                new Capability("Tenant", "PULL", false),
+                new Capability("WorkOrder", "PUSH+PULL", false)
+        );
     }
 
     @Override

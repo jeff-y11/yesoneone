@@ -5,7 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -37,6 +39,9 @@ public class Integration extends AuditableEntity {
     @MapKeyColumn(name = "param_name")
     @Column(name = "param_value")
     private Map<String, String> parameters;
+
+    @OneToMany(mappedBy = "integration", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<IntegrationCapabilities> capabilities = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id", nullable = false)
