@@ -56,8 +56,14 @@ val copyFrontendToResources = tasks.register<Copy>("copyFrontendToResources") {
     into(layout.buildDirectory.dir("resources/main/static"))
 }
 
-tasks.named("processResources") {
+tasks.named<ProcessResources>("processResources") {
     dependsOn(copyFrontendToResources)
+    exclude("application-secrets.properties")
+    exclude("logs/**")
+}
+
+tasks.named<JavaExec>("bootRun") {
+    workingDir = file("src/main/resources")
 }
 
 tasks.withType<Test> {

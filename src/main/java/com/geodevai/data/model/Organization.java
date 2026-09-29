@@ -29,6 +29,6 @@ public class Organization extends AuditableEntity {
     @OneToMany(mappedBy = "organization", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Integration> integrations = new HashSet<>();
 
-    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "organization", fetch = FetchType.LAZY)
     private Set<Property> properties = new HashSet<>();
 }
